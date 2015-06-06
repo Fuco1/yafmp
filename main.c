@@ -95,6 +95,5 @@ int main() {
     int* heatmap = makeHeatmap(input, "/");
     printArray(heatmap, len);
     printf("\n");
-    score(input, "abcabc", heatmap);
-    return 0;
+    return score(input, "bbbu", heatmap);
 }
