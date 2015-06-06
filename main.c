@@ -35,22 +35,30 @@ void updateMaxArray(int* max, int* row, int len) {
     }
 }
 
-int score(const char* input, const char* pattern, const int* heatmap) {
+typedef struct {
+    int index;
+    int score;
+    int* matches;
+} Result;
+
+Result* score(const char* input, const char* pattern, const int* heatmap) {
     int leni = strlen(input);
     int lenp = strlen(pattern);
     int (*t)[leni] = malloc(sizeof(int) * leni * lenp);
-    int* max = malloc(sizeof(int) * leni);
+    int (*max)[leni] = malloc(sizeof(int) * leni * (lenp + 1));
 
-    for (int i = 0; i < leni; i++) { max[i] = -1; }
     for (int r = 0; r < lenp; r++) {
         for (int c = 0; c < leni; c++) {
             t[r][c] = MIN_PENALTY;
+            max[r][c] = -1;
         }
+    }
+    for (int c = 0; c < leni; c++) {
+        max[lenp][c] = -1;
     }
 
     int endCol = leni;
     for (int r = lenp - 1; r >= 0; r--) {
-        printArray(max, leni);
         int lastMatchIndex = -1;
         for (int c = endCol - 1; c >= 0; c--) {
             if (input[c] == pattern[r]) {
@@ -58,57 +66,79 @@ int score(const char* input, const char* pattern, const int* heatmap) {
                     lastMatchIndex = c;
                 }
                 int prev = 0;
-                if (max[c] != -1) {
-                    prev = t[r+1][max[c]];
+                if (max[r+1][c] != -1) {
+                    prev = t[r+1][max[r+1][c]];
                 }
                 t[r][c] = heatmap[c] + prev;
             }
         }
         // no possible match
         if (lastMatchIndex == -1) {
-            return -1;
+            return NULL;
         }
         endCol = lastMatchIndex;
-        updateMaxArray(max, t[r], leni);
-        printArray(t[r], leni);
+        updateMaxArray(max[r], t[r], leni);
     }
     printf("\n");
+    printTable(lenp + 1, leni, max);
     printTable(lenp, leni, t);
+
+    Result* r = malloc(sizeof(Result));
+    r->matches = malloc(sizeof(int) * lenp);
+    r->score = t[0][max[0][0]];
+
+    int c = 0;
+    for (int i = 0; i < lenp; i++) {
+        c = max[i][c];
+        r->matches[i] = c;
+        printf("%d, ", c);
+        c++;
+    }
+    printf("\n");
+
     free(t);
     free(max);
-    return 0;
+    return r;
 }
-
-typedef struct {
-    int index;
-    int score;
-    int* matches;
-} Result;
 
 typedef struct {
     char* pattern;
     int currentIndex;
-    int numberOfResults;
+    int currentResult;
     Result* results;
 } State;
 
 void processLine(const char* line, int len, void* userData) {
     int* heatmap = makeHeatmap(line, "/");
     printArray(heatmap, len);
-    printf("\n");
     State* state = (State*) userData;
-    int s = score(line, state->pattern, heatmap);
-    Result* r = &state->results[state->currentIndex];
-    printf("Current index: %d\n", state->currentIndex);
-    r->index = state->currentIndex;
-    r->score = s;
+    Result* s = score(line, state->pattern, heatmap);
+    if (s != NULL) {
+        Result* r = &state->results[state->currentResult];
+        r->index = state->currentIndex;
+        r->score = s->score;
+        r->matches = s->matches;
+        // do not free s->matches, it is shared with r!
+        free(s);
+        state->currentResult++;
+    }
     state->currentIndex++;
 }
 
 void printState(State* s) {
-    printf("Pattern: %s\n", s->pattern);
-    for (int i = 0; i < s->numberOfResults; i++) {
-        printf("%3d: %4d\n", s->results[i].index, s->results[i].score);
+    int len = strlen(s->pattern);
+    for (int i = 0; i < s->currentResult; i++) {
+        printf("%d:%d:", s->results[i].index, s->results[i].score);
+        for (int j = 0; j < len; j++) {
+            printf("%d", s->results[i].matches[j]);
+            if (j < len - 1) {
+                printf(",");
+            }
+        }
+        printf("\n");
+    }
+}
+
     }
 }
 
@@ -139,10 +169,12 @@ int main() {
     Result results[lb->numberOfLines];
     state.pattern = "bbu";
     state.results = results;
-    state.numberOfResults = lb->numberOfLines;
+    state.currentResult = 0;
     state.currentIndex = 0;
 
     withLineBuffer(lb, &processLine, &state);
     printState(&state);
+
+    // free state and all associated buffers
     return 0;
 }
