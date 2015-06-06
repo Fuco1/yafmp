@@ -75,7 +75,7 @@ int score(const char* input, const char* pattern, const int* heatmap) {
     printTable(lenp, leni, t);
     free(t);
     free(max);
-    return 1;
+    return 0;
 }
 
 int main() {
