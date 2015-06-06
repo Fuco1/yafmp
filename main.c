@@ -46,10 +46,6 @@ void incHeatmap(int* heatmap, int delta, int from, int to) {
     }
 }
 
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-
 int* makeHeatmap(const char* input, const char* groupDelimiters) {
     int len = strlen(input);
     int* heatmap = malloc(sizeof(int) * len);
