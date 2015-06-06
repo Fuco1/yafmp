@@ -168,6 +168,7 @@ int main() {
     char* input = NULL;
     size_t bufferLen = 0;
     int len;
+    // TODO: write a version of getline which returns strings without the trailing \n
     while ((len = getline(&input, &bufferLen, stdin)) > 1) {
         // remove the trailing newline
         if (len > 1) {
@@ -177,9 +178,14 @@ int main() {
         appendLine(lb, input, len);
     }
 
+    // read the pattern
+    len = getline(&input, &bufferLen, stdin);
+    len--;
+    input[len] = '\0';
+
     State state;
     Result results[lb->numberOfLines];
-    state.pattern = "igwx7z6akas";
+    state.pattern = input;
     state.results = results;
     state.currentResult = 0;
     state.currentIndex = 0;
