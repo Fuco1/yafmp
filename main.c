@@ -139,7 +139,28 @@ void printState(State* s) {
     }
 }
 
+void printStateLisp(State* s) {
+    int len = strlen(s->pattern);
+    printf("(quote \n");
+    for (int i = 0; i < s->currentResult; i++) {
+        if (i == 0) {
+            printf(" (");
+        } else {
+            printf("  ");
+        }
+        printf("(:index %d :score %d :matches (", s->results[i].index, s->results[i].score);
+        for (int j = 0; j < len; j++) {
+            printf("%d", s->results[i].matches[j]);
+            if (j < len - 1) {
+                printf(" ");
+            }
+        }
+        printf("))");
+        if (i < s->currentResult - 1) {
+            printf("\n");
+        }
     }
+    printf("))\n");
 }
 
 int main() {
@@ -174,6 +195,7 @@ int main() {
 
     withLineBuffer(lb, &processLine, &state);
     printState(&state);
+    printStateLisp(&state);
 
     // free state and all associated buffers
     return 0;
