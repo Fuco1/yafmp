@@ -7,7 +7,7 @@ INC_DIR = -I/usr/local/include
 
 LDLIBS = $(LIB_DIR)
 
-SOURCE = iarray.c group.c heatmap.c main.c
+SOURCE = iarray.c group.c heatmap.c linebuffer.c main.c
 OBJECTS = ${SOURCE:%.c=$(OBJ_DIR)/%.o}
 EXECUTABLE = main
 
