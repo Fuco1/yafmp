@@ -36,6 +36,7 @@ void updateMaxArray(int* max, int* row, int len) {
     }
 }
 
+// TODO: move to separate file, add constructor and destructor
 typedef struct {
     int index;
     int score;
@@ -107,6 +108,7 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
     return r;
 }
 
+// TODO: move to separate file, add constructor and destructor
 typedef struct {
     char* pattern;
     int currentIndex;
@@ -202,6 +204,7 @@ int main() {
     state.currentIndex = 0;
 
     withLineBuffer(lb, &processLine, &state);
+    // TODO: add an option to sort the results on score instead of index
     printStateLisp(&state);
 
     // free state and all associated buffers
