@@ -7,6 +7,11 @@ Group* makeGroup() {
     return group;
 }
 
+void destroyGroup(Group* group) {
+    destroyIntArray(group->words);
+    free(group);
+}
+
 int numberOfWords(Group* group) {
     return group->words->current;
 }

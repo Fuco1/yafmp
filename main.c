@@ -73,20 +73,21 @@ int* makeHeatmap(const char* input, const char* groupDelimiters) {
     // Apply word penalties for words of each group
     int groupIndex = numberOfGroups;
     int groupEnd = len;
-    while (g != NULL) {
+    cur = g;
+    while (cur != NULL) {
         // Penalty for group position. Later groups are slightly preferred over later groups.
         int groupPositionPenalty = - GROUP_POSITION_PENALTY + groupIndex;
         // Apply the "basegroup" bonus.  Basegroup is the last group.  For
         // example, in file paths /bar/baz.txt, we want to give higher weight
         // to 'baz.txt' portion.
         if (groupIndex == numberOfGroups) {
-            groupPositionPenalty = -(BASEGROUP_BONUS - numberOfEffectiveWords(g) + numberOfGroups);
+            groupPositionPenalty = -(BASEGROUP_BONUS - numberOfEffectiveWords(cur) + numberOfGroups);
         }
         int wordStart;
         int wordEnd = groupEnd;
-        int effectiveWordIndex = numberOfWords(g) - 1;
+        int effectiveWordIndex = numberOfWords(cur) - 1;
         for (int i = effectiveWordIndex; i >= 0; i--) {
-            wordStart = getWord(g, i);
+            wordStart = getWord(cur, i);
             int wordGroupPenalty = effectiveWordIndex * WORD_IN_GROUP_POSITION_PENALTY_MULTIPLIER;
             // Wordstart bonus.  For non-final groups we only consider effective words.
             if (groupIndex == numberOfGroups) {
@@ -105,8 +106,15 @@ int* makeHeatmap(const char* input, const char* groupDelimiters) {
             wordEnd = wordStart;
         }
         groupEnd = wordStart;
-        g = g->prev;
+        cur = cur->prev;
         groupIndex--;
+    }
+
+    // free the resources
+    while (g != NULL) {
+        Group* d = g;
+        g = g->prev;
+        destroyGroup(d);
     }
 
     return heatmap;
@@ -183,6 +191,7 @@ int score(const char* input, const char* pattern, const int* heatmap) {
     printf("\n");
     printTable(lenp, leni, t);
     free(t);
+    free(max);
     return 1;
 }
 

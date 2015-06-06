@@ -24,6 +24,13 @@ typedef struct Group {
 Group* makeGroup();
 
 /**
+ * Destroy group, releasing all used memory.
+ *
+ * @param Group to destroy.
+ */
+void destroyGroup(Group* array);
+
+/**
  * Return number of words in this group.
  *
  * @param Group.

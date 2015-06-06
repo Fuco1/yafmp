@@ -8,6 +8,11 @@ IntArray* makeIntArray(int size) {
     return array;
 }
 
+void destroyIntArray(IntArray* array) {
+    free(array->data);
+    free(array);
+}
+
 void pushInt(IntArray* array, int value) {
     if (array->size == array->current) {
         array->size *= 2;

@@ -25,6 +25,13 @@ typedef struct {
 IntArray* makeIntArray(int size);
 
 /**
+ * Destroy integer array, releasing all used memory.
+ *
+ * @param Array to destroy.
+ */
+void destroyIntArray(IntArray* array);
+
+/**
  * Push new item into the array.
  *
  * @param Pointer to a dynamic array.
