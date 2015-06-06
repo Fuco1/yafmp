@@ -79,12 +79,37 @@ int score(const char* input, const char* pattern, const int* heatmap) {
     return 0;
 }
 
+typedef struct {
+    int index;
+    int score;
+    int* matches;
+} Result;
+
+typedef struct {
+    char* pattern;
+    int currentIndex;
+    int numberOfResults;
+    Result* results;
+} State;
+
 void processLine(const char* line, int len, void* userData) {
     int* heatmap = makeHeatmap(line, "/");
     printArray(heatmap, len);
     printf("\n");
-    char* pattern = (char*) userData;
-    score(line, pattern, heatmap);
+    State* state = (State*) userData;
+    int s = score(line, state->pattern, heatmap);
+    Result* r = &state->results[state->currentIndex];
+    printf("Current index: %d\n", state->currentIndex);
+    r->index = state->currentIndex;
+    r->score = s;
+    state->currentIndex++;
+}
+
+void printState(State* s) {
+    printf("Pattern: %s\n", s->pattern);
+    for (int i = 0; i < s->numberOfResults; i++) {
+        printf("%3d: %4d\n", s->results[i].index, s->results[i].score);
+    }
 }
 
 int main() {
@@ -110,7 +135,14 @@ int main() {
     printLineBuffer(lb);
 
     printf("\n");
-    char pattern[] = "bbu";
-    withLineBuffer(lb, &processLine, pattern);
+    State state;
+    Result results[lb->numberOfLines];
+    state.pattern = "bbu";
+    state.results = results;
+    state.numberOfResults = lb->numberOfLines;
+    state.currentIndex = 0;
+
+    withLineBuffer(lb, &processLine, &state);
+    printState(&state);
     return 0;
 }
