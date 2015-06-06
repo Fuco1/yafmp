@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "iarray.h"
 #include "group.h"
@@ -41,6 +42,15 @@ typedef struct {
     int* matches;
 } Result;
 
+int smartCompare(char in, char p) {
+    if (isupper(p)) {
+        return in == p;
+    }
+    char inl = tolower(in);
+    char pl = tolower(p);
+    return inl == pl;
+}
+
 Result* score(const char* input, const char* pattern, const int* heatmap) {
     int leni = strlen(input);
     int lenp = strlen(pattern);
@@ -61,7 +71,8 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
     for (int r = lenp - 1; r >= 0; r--) {
         int lastMatchIndex = -1;
         for (int c = endCol - 1; c >= 0; c--) {
-            if (input[c] == pattern[r]) {
+            //if (input[c] == pattern[r]) {
+            if (smartCompare(input[c], pattern[r])) {
                 if (lastMatchIndex == -1) {
                     lastMatchIndex = c;
                 }
