@@ -13,6 +13,13 @@ void printArray(int* array, int len) {
     printf("\n");
 }
 
+void printTable(int rc,  int cc, int (*t)[cc]) {
+    for (int r = 0; r < rc; r++) {
+        printArray(t[r], cc);
+    }
+    printf("\n");
+}
+
 #define MIN_PENALTY -9999;
 
 void updateMaxArray(int* max, int* row, int len) {
@@ -25,16 +32,6 @@ void updateMaxArray(int* max, int* row, int len) {
         }
         max[i] = cmi;
     }
-}
-
-void printTable(int rc,  int cc, int (*t)[cc]) {
-    for (int r = 0; r < rc; r++) {
-        for (int c = 0; c < cc; c++) {
-            printf("%5d", t[r][c]);
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 int score(const char* input, const char* pattern, const int* heatmap) {
