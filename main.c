@@ -5,6 +5,7 @@
 #include "iarray.h"
 #include "group.h"
 #include "heatmap.h"
+#include "linebuffer.h"
 
 void printArray(int* array, int len) {
     for (int i = 0; i < len; i++) {
@@ -78,14 +79,38 @@ int score(const char* input, const char* pattern, const int* heatmap) {
     return 0;
 }
 
+void processLine(const char* line, int len, void* userData) {
+    int* heatmap = makeHeatmap(line, "/");
+    printArray(heatmap, len);
+    printf("\n");
+    char* pattern = (char*) userData;
+    score(line, pattern, heatmap);
+}
+
 int main() {
     // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 -7 -8 -9 76 -10 -11 -11]
     // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 76 73 -13 -14 -15 70 -16 -17 -17]
-    char input[] = "AbcBbcCccabcAbcabcabcAbcBc";//"foo--bar-baz/qux-flux";
-    int len = strlen(input);
+    //char input[] = "AbcBbcCccabcAbcabcabcAbcBc";
+    /* char input[] = "foo--bar-baz/qax-flux"; */
+    /*             // "foo--bar-baz/qax-flux" */
+
+    LineBuffer* lb = makeLineBuffer(4000);
+    char* input = NULL;
+    size_t bufferLen = 0;
+    int len;
+    while ((len = getline(&input, &bufferLen, stdin)) > 1) {
+        // remove the trailing newline
+        if (len > 1) {
+            len--;
+            input[len] = '\0';
+        }
+        appendLine(lb, input, len);
+    }
+
+    printLineBuffer(lb);
+
     printf("\n");
-    int* heatmap = makeHeatmap(input, "/");
-    printArray(heatmap, len);
-    printf("\n");
-    return score(input, "bbbu", heatmap);
+    char pattern[] = "bbu";
+    withLineBuffer(lb, &processLine, pattern);
+    return 0;
 }

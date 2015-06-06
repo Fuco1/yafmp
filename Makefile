@@ -1,5 +1,5 @@
 CXX = gcc
-CXXFLAGS = -Wall -std=c99 -ggdb
+CXXFLAGS = -Wall -std=c99 -ggdb -D_GNU_SOURCE
 
 OBJ_DIR = bin
 LIB_DIR = -L/usr/local/lib
