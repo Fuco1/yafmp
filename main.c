@@ -79,9 +79,6 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
         endCol = lastMatchIndex;
         updateMaxArray(max[r], t[r], leni);
     }
-    printf("\n");
-    printTable(lenp + 1, leni, max);
-    printTable(lenp, leni, t);
 
     Result* r = malloc(sizeof(Result));
     r->matches = malloc(sizeof(int) * lenp);
@@ -91,10 +88,8 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
     for (int i = 0; i < lenp; i++) {
         c = max[i][c];
         r->matches[i] = c;
-        printf("%d, ", c);
         c++;
     }
-    printf("\n");
 
     free(t);
     free(max);
@@ -110,7 +105,6 @@ typedef struct {
 
 void processLine(const char* line, int len, void* userData) {
     int* heatmap = makeHeatmap(line, "/");
-    printArray(heatmap, len);
     State* state = (State*) userData;
     Result* s = score(line, state->pattern, heatmap);
     if (s != NULL) {
@@ -183,18 +177,14 @@ int main() {
         appendLine(lb, input, len);
     }
 
-    printLineBuffer(lb);
-
-    printf("\n");
     State state;
     Result results[lb->numberOfLines];
-    state.pattern = "bbu";
+    state.pattern = "igwx7z6akas";
     state.results = results;
     state.currentResult = 0;
     state.currentIndex = 0;
 
     withLineBuffer(lb, &processLine, &state);
-    printState(&state);
     printStateLisp(&state);
 
     // free state and all associated buffers
