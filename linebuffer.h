@@ -16,7 +16,7 @@ LineBuffer* makeLineBuffer(int size);
 
 void destroyLineBuffer(LineBuffer** lb);
 
-void appendLine(LineBuffer* lb, char* text, int length);
+void appendLine(LineBuffer* lb, const char* text, int length);
 
 void printLineBuffer(LineBuffer* lb);
 

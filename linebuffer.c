@@ -16,21 +16,18 @@ void destroyLineBuffer(LineBuffer** lb) {
     *lb = NULL;
 }
 
-void appendLine(LineBuffer* lb, char* line, int length) {
+void appendLine(LineBuffer* lb, const char* line, int length) {
     int needRealloc = 0;
-    while (lb->current + length >= lb->size) {
+    while (lb->current + length + 1 >= lb->size) {
         lb->size *= 2;
         needRealloc = 1;
     }
     if (needRealloc) {
         lb->buffer = realloc(lb->buffer, sizeof(char) * lb->size);
     }
-    memcpy((void*)&lb->buffer[lb->current], (void*)line, sizeof(char)*length);
-    lb->current += length;
+    strcpy(&lb->buffer[lb->current], line);
+    lb->current += length + 1;
     lb->numberOfLines++;
-    lb->buffer[lb->current] = '\0';
-    // one extra byte for \0
-    lb->current++;
 }
 
 void withLineBuffer(LineBuffer* lb, void (*cb)(const char*, int, void*), void* userData) {
