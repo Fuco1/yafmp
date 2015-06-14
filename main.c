@@ -8,6 +8,7 @@
 #include "group.h"
 #include "heatmap.h"
 #include "linebuffer.h"
+#include "result.h"
 
 void printArray(int* array, int len) {
     for (int i = 0; i < len; i++) {
@@ -36,13 +37,6 @@ void updateMaxArray(int* max, int* row, int len) {
         max[i] = cmi;
     }
 }
-
-// TODO: move to separate file, add constructor and destructor
-typedef struct {
-    int index;
-    int score;
-    int* matches;
-} Result;
 
 int smartCompare(char in, char p) {
     if (isupper(p)) {
@@ -93,9 +87,7 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
         updateMaxArray(max[r], t[r], leni);
     }
 
-    Result* r = malloc(sizeof(Result));
-    r->matches = malloc(sizeof(int) * lenp);
-    r->score = t[0][max[0][0]];
+    Result* r = makeResult(lenp, t[0][max[0][0]]);
 
     int c = 0;
     for (int i = 0; i < lenp; i++) {
