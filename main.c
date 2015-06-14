@@ -118,9 +118,11 @@ typedef struct {
 } State;
 
 void processLine(const char* line, int len, void* userData) {
-    int* heatmap = makeHeatmap(line, "/");
     State* state = (State*) userData;
+
+    int* heatmap = makeHeatmap(line, "/");
     Result* s = score(line, state->pattern, heatmap);
+
     if (s != NULL) {
         Result* r = &state->results[state->currentResult];
         r->index = state->currentIndex;
@@ -131,6 +133,8 @@ void processLine(const char* line, int len, void* userData) {
         state->currentResult++;
     }
     state->currentIndex++;
+
+    free(heatmap);
 }
 
 void printState(State* s) {
