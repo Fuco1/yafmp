@@ -9,6 +9,7 @@
 #include "heatmap.h"
 #include "linebuffer.h"
 #include "result.h"
+#include "state.h"
 
 void printArray(int* array, int len) {
     for (int i = 0; i < len; i++) {
@@ -101,70 +102,22 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
     return r;
 }
 
-// TODO: move to separate file, add constructor and destructor
-typedef struct {
-    char* pattern;
-    int currentIndex;
-    int currentResult;
-    Result* results;
-} State;
-
 void processLine(const char* line, int len, void* userData) {
+    if (len == 0) return;
+
     State* state = (State*) userData;
 
     int* heatmap = makeHeatmap(line, "/");
-    Result* s = score(line, state->pattern, heatmap);
+    Result* res = score(line, state->pattern, heatmap);
 
-    if (s != NULL) {
-        Result* r = &state->results[state->currentResult];
-        r->index = state->currentIndex;
-        r->score = s->score;
-        r->matches = s->matches;
-        // do not free s->matches, it is shared with r!
-        free(s);
+    if (res != NULL) {
+        res->index = state->currentIndex;
+        addResult(state->results, res);
         state->currentResult++;
     }
     state->currentIndex++;
 
     free(heatmap);
-}
-
-void printState(State* s) {
-    int len = strlen(s->pattern);
-    for (int i = 0; i < s->currentResult; i++) {
-        printf("%d:%d:", s->results[i].index, s->results[i].score);
-        for (int j = 0; j < len; j++) {
-            printf("%d", s->results[i].matches[j]);
-            if (j < len - 1) {
-                printf(",");
-            }
-        }
-        printf("\n");
-    }
-}
-
-void printStateLisp(State* s) {
-    int len = strlen(s->pattern);
-    printf("(quote \n");
-    for (int i = 0; i < s->currentResult; i++) {
-        if (i == 0) {
-            printf(" (");
-        } else {
-            printf("  ");
-        }
-        printf("(:index %d :score %d :matches (", s->results[i].index, s->results[i].score);
-        for (int j = 0; j < len; j++) {
-            printf("%d", s->results[i].matches[j]);
-            if (j < len - 1) {
-                printf(" ");
-            }
-        }
-        printf("))");
-        if (i < s->currentResult - 1) {
-            printf("\n");
-        }
-    }
-    printf("))\n");
 }
 
 /*
