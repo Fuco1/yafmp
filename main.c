@@ -11,6 +11,11 @@
 #include "result.h"
 #include "state.h"
 
+typedef struct {
+    int server;
+    char* pattern;
+} Options;
+
 void printArray(int* array, int len) {
     for (int i = 0; i < len; i++) {
         printf("%5d", array[i]);
@@ -138,22 +143,87 @@ void processLine(const char* line, int len, void* userData) {
    back and forth.
  */
 
+void processOnTheFly(Options* opt) {
+    char* input = NULL;
+    size_t bufferLen = 0;
+    int len;
+
+    State* state = makeState(opt->pattern);
+
+    int lastResult = 0;
+    while ((len = getline(&input, &bufferLen, stdin)) != -1) {
+        len--;
+        input[len] = '\0';
+        processLine(input, len, state);
+        if (state->currentResult > lastResult) {
+            printResult(state->results->last, state->patternLen);
+        }
+        lastResult = state->currentResult;
+    }
+
+    free(input);
+    destroyState(&state);
+}
+
+LineBuffer* readLines() {
+    LineBuffer* lb = makeLineBuffer(4000);
+    char* input = NULL;
+    size_t bufferLen = 0;
+    int len;
+
+    int n;
+    scanf("%d\n", &n);
+
+    for (int i = 0; i < n; i++) {
+        len = getline(&input, &bufferLen, stdin);
+        // remove the trailing newline
+        len--;
+        input[len] = '\0';
+        appendLine(lb, input, len);
+    }
+
+    free(input);
+    return lb;
+}
+
+/**
+ * Read pattern from stdin if not specified as an option
+ *
+ * @param Options
+ */
+void readPattern(Options* opt) {
+    int len;
+    size_t bufferLen = 0;
+    if (opt->pattern == NULL) {
+        bufferLen = 0;
+        len = getline(&opt->pattern, &bufferLen, stdin);
+        opt->pattern[len-1] = '\0';
+    }
+}
+
+void processServer(Options* opt) {
+    LineBuffer* lb = readLines();
+    readPattern(opt);
+
+    State* state = makeState(opt->pattern);
+
+    withLineBuffer(lb, &processLine, state);
+
+    printState(state);
+
+    destroyLineBuffer(&lb);
+    destroyState(&state);
+}
+
+// add --print-index, --print-score, --print-matches, --print-line
+// add sorting (by score, desc/asc)
 static struct option longOptions[] = {
     {"pattern", required_argument, 0, 'e'},
     {"server", no_argument, 0, 's'},
     {0, 0, 0, 0}
 };
 
-typedef struct {
-    int server;
-    char* pattern;
-} Options;
 int main(int argc, char** argv) {
-    // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 -7 -8 -9 76 -10 -11 -11]
-    // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 76 73 -13 -14 -15 70 -16 -17 -17]
-    //char input[] = "AbcBbcCccabcAbcabcabcAbcBc";
-    /* char input[] = "foo--bar-baz/qax-flux"; */
-    /*             // "foo--bar-baz/qax-flux" */
 
     Options opt = {
         0,
@@ -186,40 +256,18 @@ int main(int argc, char** argv) {
         }
     }
 
-    LineBuffer* lb = makeLineBuffer(4000);
-    char* input = NULL;
-    size_t bufferLen = 0;
-    int len;
-    // TODO: write a version of getline which returns strings without the trailing \n
-    while ((len = getline(&input, &bufferLen, stdin)) > 1) {
-        // remove the trailing newline
-        if (len > 1) {
-            len--;
-            input[len] = '\0';
-        }
-        appendLine(lb, input, len);
+    if (opt.server == 0 && opt.pattern == NULL) {
+        printf("When not in server mode, the pattern must be specified using -e\n");
+        return -1;
     }
 
-    // read the pattern
-    len = getline(&input, &bufferLen, stdin);
-    len--;
-    input[len] = '\0';
-
-    State state;
-    Result results[lb->numberOfLines];
-    state.pattern = input;
-    state.results = results;
-    state.currentResult = 0;
-    state.currentIndex = 0;
-
-    withLineBuffer(lb, &processLine, &state);
-    // TODO: add an option to sort the results on score instead of index
-    printStateLisp(&state);
+    if (opt.server == 1) {
+        processServer(&opt);
+    } else {
+        processOnTheFly(&opt);
+    }
 
     // free state and all associated buffers
-    free(input);
     free(opt.pattern);
-    opt.pattern = NULL;
-    destroyLineBuffer(&lb);
     return 0;
 }
