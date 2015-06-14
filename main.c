@@ -59,6 +59,7 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
     int (*t)[leni] = malloc(sizeof(int) * leni * lenp);
     int (*max)[leni] = malloc(sizeof(int) * leni * (lenp + 1));
 
+    Result* result = NULL;
     for (int r = 0; r < lenp; r++) {
         for (int c = 0; c < leni; c++) {
             t[r][c] = MIN_PENALTY;
@@ -87,24 +88,25 @@ Result* score(const char* input, const char* pattern, const int* heatmap) {
         }
         // no possible match
         if (lastMatchIndex == -1) {
-            return NULL;
+            goto end;
         }
         endCol = lastMatchIndex;
         updateMaxArray(max[r], t[r], leni);
     }
 
-    Result* r = makeResult(lenp, t[0][max[0][0]]);
+    result = makeResult(lenp, t[0][max[0][0]]);
 
     int c = 0;
     for (int i = 0; i < lenp; i++) {
         c = max[i][c];
-        r->matches[i] = c;
+        result->matches[i] = c;
         c++;
     }
 
+    end:
     free(t);
     free(max);
-    return r;
+    return result;
 }
 
 void processLine(const char* line, int len, void* userData) {
