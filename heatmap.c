@@ -16,7 +16,8 @@ Group* getGroups(const char* input, const char* groupDelimiters) {
             continue;
         }
         // start of new word
-        if ((NULL != strchr(wordDelimiters, c)) || isupper(input[i])) {
+        if (((NULL != strchr(wordDelimiters, c)) || isupper(input[i])) &&
+            input[i] != '\0') {
             addWord(g, i);
         }
     }
