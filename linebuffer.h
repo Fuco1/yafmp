@@ -14,7 +14,7 @@ typedef struct {
 
 LineBuffer* makeLineBuffer(int size);
 
-void destroyLineBuffer(LineBuffer* lb);
+void destroyLineBuffer(LineBuffer** lb);
 
 void appendLine(LineBuffer* lb, char* text, int length);
 

@@ -10,9 +10,10 @@ LineBuffer* makeLineBuffer(int size) {
     return lb;
 }
 
-void destroyLineBuffer(LineBuffer* lb) {
-    free(lb->buffer);
-    free(lb);
+void destroyLineBuffer(LineBuffer** lb) {
+    if ((*lb)->buffer) free((*lb)->buffer);
+    if (*lb) free(*lb);
+    *lb = NULL;
 }
 
 void appendLine(LineBuffer* lb, char* line, int length) {

@@ -208,7 +208,7 @@ int main() {
     printStateLisp(&state);
 
     // free state and all associated buffers
-    destroyLineBuffer(lb);
     free(input);
+    destroyLineBuffer(&lb);
     return 0;
 }
