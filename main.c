@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <getopt.h>
 
 #include "iarray.h"
 #include "group.h"
@@ -170,12 +171,71 @@ void printStateLisp(State* s) {
     printf("))\n");
 }
 
-int main() {
+/*
+   We have two modes of operation.
+
+   First (default) is the "grep" mode, where we specify the pattern as
+   an argument on the command line and then read the stdin for
+   patterns.  Instead of storing everything in memory we should
+   resolve the lines right away so we won't overflow on large files.
+
+   Second mode is a "server" mode.  First we tell the program how many
+   candidates to expect and then we feed it that many lines.
+
+   Afterwards, each line is a new pattern to match against the list of
+   candidates read previously.  This is useful when the program is
+   called from another program to do interactive
+   filtering/narrowing---we save the time marshalling the candidates
+   back and forth.
+ */
+
+static struct option longOptions[] = {
+    {"pattern", required_argument, 0, 'e'},
+    {"server", no_argument, 0, 's'},
+    {0, 0, 0, 0}
+};
+
+typedef struct {
+    int server;
+    char* pattern;
+} Options;
+int main(int argc, char** argv) {
     // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 -7 -8 -9 76 -10 -11 -11]
     // [43 -43 -44 -45 -46 40 -46 -47 -48 37 -49 -50 -51 79 76 73 -13 -14 -15 70 -16 -17 -17]
     //char input[] = "AbcBbcCccabcAbcabcabcAbcBc";
     /* char input[] = "foo--bar-baz/qax-flux"; */
     /*             // "foo--bar-baz/qax-flux" */
+
+    Options opt = {
+        0,
+        NULL
+    };
+
+    int optInd;
+    int c;
+    while (1) {
+        c = getopt_long(argc, argv, "se:", longOptions, &optInd);
+
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+        case 0:
+            break;
+        case 's':
+            opt.server = 1;
+            break;
+        case 'e':
+            opt.pattern = malloc(sizeof(char) * (strlen(optarg) + 1));
+            strcpy(opt.pattern, optarg);
+            break;
+        case '?':
+            break;
+        default:
+            abort();
+        }
+    }
 
     LineBuffer* lb = makeLineBuffer(4000);
     char* input = NULL;
@@ -209,6 +269,8 @@ int main() {
 
     // free state and all associated buffers
     free(input);
+    free(opt.pattern);
+    opt.pattern = NULL;
     destroyLineBuffer(&lb);
     return 0;
 }
